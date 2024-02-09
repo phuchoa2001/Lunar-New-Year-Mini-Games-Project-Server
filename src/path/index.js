@@ -1,63 +1,52 @@
-const user = require("../schema/users");
-const blog = require("../schema/blogs");
-const category = require("../schema/category");
-const bookshop = require("../schema/bookshop")
-const permission = require("../schema/permission")
-const image = require("../schema/images");
+const idGame = require("../schema/idgame");
+const goal = require("../schema/goal")
+const post = require("../common/public/post");
+const put = require("../common/public/put");
 
 const Path = [
 	{
-		router : "/users" ,
-		schema : user,
-		populates : [],
-		isAdmin : true,
-		isLogin : true , 
-		fieldSearch : ["username" , "email"],
-		allowPublic : false
+		router: "/idgame",
+		schema: idGame,
+		populates: [],
+		isAdmin: false,
+		isLogin: false,
+		fieldSearch: [],
+		allowPublic: false
 	},
 	{
-		router : "/permission" ,
-		schema : permission,
-		populates : [],
-		isAdmin : true,
-		isLogin : true,
-		fieldSearch : ["username" , "email"],
-		allowPublic : false
-	},
-	{
-		router : "/blogs" ,
-		schema : blog,
-		populates : ["category , bookshop"],
-		isAdmin : false,
-		isLogin : true , 
-		fieldSearch : ["username" , "email"],
-		allowPublic : true
-	},
-	{
-		router : "/categorys" ,
-		schema : category,
-		populates : [],
-		isAdmin : false,
-		isLogin : true , 
-		fieldSearch : ["username" , "email"],
-		allowPublic : true
-	},
-	{
-		router : "/bookshops" ,
-		schema : bookshop,
-		populates : [],
-		isAdmin : false,
-		isLogin : true , 
-		fieldSearch : ["username" , "email"],
-		allowPublic : false
-	},
-	{
-		router : "/images" ,
-		schema : image,
-		populates : [],
-		isAdmin : false,
-		isLogin : true , 
-		allowPublic : true
+		router: "/goals",
+		schema: goal,
+		populates: [],
+		isAdmin: false,
+		isLogin: false,
+		fieldSearch: ["username"],
+		allowPublic: false,
+		routerMore: (app, action, item) => {
+			app.post(`${item.router}`, action.nextFun, async (req, res) => {
+				const postData = req.body;
+				delete postData.likes;
+				post(req, res, item.schema, item.populates)
+			})
+			app.put(`${item.router}/:id`, action.nextFun, async (req, res) => {
+				const updateData = req.body;
+				delete updateData.likes;
+				put(req, res, item.schema, item.populates)
+			})
+			app.post(`${item.router}/:goalId/like`, action.nextFun, async (req, res) => {
+				const goalId = req.params.goalId;
+				try {
+					const goal = await item.schema.findById(goalId);
+					if (!goal) {
+						return res.status(404).json({ message: 'Mục tiêu không tồn tại' });
+					}
+					goal.likes += 1;
+					await goal.save();
+					res.json({ message: 'Tăng like thành công', goal });
+				} catch (error) {
+					res.status(500).json({ message: 'Lỗi máy chủ', error: error.message });
+				}
+			})
+		}
 	}
 ]
 

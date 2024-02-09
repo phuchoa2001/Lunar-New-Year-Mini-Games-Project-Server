@@ -24,8 +24,9 @@ const { isAdmin, verifyToken } = require("../middleware/jwt")
 const { PERMISSION } = require("../contants/permission");
 const { JWT_SECRET } = require("../contants/jwt");
 const { SALTROUNDS } = require("../contants/bcrypt");
-
+const pageViewSchema = require('../schema/pageView');
 const userSchema = require("../schema/users");
+const idGameSchema = require("../schema/idgame");
 
 const AccountAdmin = {
 	username: "Phuchoa",
@@ -37,13 +38,13 @@ const AccountAdmin = {
 
 function route(app) {
 	app.get("/", (req, res) => {
-		res.render("home");
+		res.send("hello")
 	})
 
-		// Upload File 
+	// Upload File 
 	app.post(`/images/upload`, async (req, res) => {
 		const { name, url } = req.body;
-		await cloudinary.uploader.upload(url,{ public_id: name },
+		await cloudinary.uploader.upload(url, { public_id: name },
 			function (error, result) {
 				if (result) {
 					const module_obj = {
@@ -55,11 +56,11 @@ function route(app) {
 					};
 
 					req.body = {
-						...req.body , 
+						...req.body,
 						...module_obj
 					}
-					
-					post(req, res, imageSchema , [])
+
+					post(req, res, imageSchema, [])
 				} else {
 					res.json({ payload: "error" });
 				}
@@ -72,8 +73,12 @@ function route(app) {
 
 		const nextFun = confirm({ isAdmin, isLogin });
 
+		if (item.routerMore) {
+			item.routerMore(app, { nextFun }, item);
+		}
+
 		app.get(`${item.router}`, nextFun, (req, res) => {
-			getList(req, res, item.schema, item.populates , item.fieldSearch)
+			getList(req, res, item.schema, item.populates, item.fieldSearch)
 		})
 		app.get(`${router}/:id`, nextFun, (req, res) => {
 			getId(req, res, item.schema, item.populates)
@@ -114,6 +119,14 @@ function route(app) {
 	// 	res.status(201).json(user);
 	// })
 	// JSON Web Tokens
+	app.post('/stats', async (req, res) => {
+		const result = await pageViewSchema.findOneAndUpdate({}, { $inc: { views: 1 } }, { new: true, upsert: true });
+		const count = await idGameSchema.countDocuments();
+		res.json({
+			result,
+			count
+		});
+	});
 	app.post('/register', isAdmin, register)
 	app.post('/login', login)
 	app.post('/protected', verifyToken, protected)

@@ -20,8 +20,6 @@ app.use(express.urlencoded())
 app.use(express.json())
 app.use(express.static(path.join(__dirname, 'public')))
 route(app);
-app.set('view engine', 'hbs');
-app.set('views', path.join(__dirname, 'resources/views'));
 app.use(express.json({limit: '5mb'}));
 app.use(express.urlencoded({limit: '5mb', extended: true}));
 
