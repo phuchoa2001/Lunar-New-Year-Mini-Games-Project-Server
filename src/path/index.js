@@ -72,6 +72,17 @@ const Path = [
 					res.status(500).send({ message: 'Server error' });
 				}
 			})
+			app.patch(`${item.router}/updateStatus`, action.nextFun, async (req, res) => {
+				try {
+					const updatedGoals = await item.schema.updateMany({ status: 2 }, { $set: { status: 1 } });
+					res.json({
+						message: 'Goals updated successfully',
+						updatedGoals
+					});
+				} catch (error) {
+					res.status(500).json({ message: 'Error updating goals', error });
+				}
+			})
 		}
 	}
 ]
