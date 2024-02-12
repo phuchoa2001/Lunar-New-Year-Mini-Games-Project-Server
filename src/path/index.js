@@ -21,7 +21,7 @@ const Path = [
 		populates: [],
 		isAdmin: false,
 		isLogin: false,
-		fieldSearch: ["username"],
+		fieldSearch: ["idGame" , "target"],
 		allowPublic: false,
 		routerMore: (app, action, item) => {
 			app.post(`${item.router}`, action.nextFun, async (req, res) => {
