@@ -2,6 +2,8 @@ const idGame = require("../schema/idgame");
 const goal = require("../schema/goal")
 const post = require("../common/public/post");
 const put = require("../common/public/put");
+const checkUpdateTime = require('../middleware/checkUpdateTime');
+const checkUserConfirmation = require('../middleware/checkUserConfirmation');
 
 const Path = [
 	{
@@ -27,9 +29,12 @@ const Path = [
 				delete postData.likes;
 				post(req, res, item.schema, item.populates)
 			})
-			app.put(`${item.router}/:id`, action.nextFun, async (req, res) => {
+			app.put(`${item.router}/:id`, checkUserConfirmation, checkUpdateTime, action.nextFun, async (req, res) => {
 				const updateData = req.body;
 				delete updateData.likes;
+				updateData.status = 2;
+				delete updateData.idUser;
+				delete updateData.idGame;
 				put(req, res, item.schema, item.populates)
 			})
 			app.post(`${item.router}/:goalId/like`, action.nextFun, async (req, res) => {
@@ -44,6 +49,27 @@ const Path = [
 					res.json({ message: 'Tăng like thành công', goal });
 				} catch (error) {
 					res.status(500).json({ message: 'Lỗi máy chủ', error: error.message });
+				}
+			})
+			app.get(`${item.router}/random`, action.nextFun, async (req, res) => {
+				const userId = req.query.userId;
+				if (!userId) {
+					return res.status(400).send({ message: 'UserID is required' });
+				}
+
+				try {
+					const count = await item.schema.countDocuments({ idUser: { $ne: userId } });
+					const random = Math.floor(Math.random() * count);
+					const goal = await item.schema.findOne({ idUser: { $ne: userId } }).skip(random);
+
+					if (goal) {
+						res.send(goal);
+					} else {
+						res.status(404).send({ message: 'No goals found' });
+					}
+				} catch (error) {
+					console.error(error);
+					res.status(500).send({ message: 'Server error' });
 				}
 			})
 		}
