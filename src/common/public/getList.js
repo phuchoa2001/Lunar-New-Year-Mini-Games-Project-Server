@@ -23,6 +23,9 @@ const getList = async (req, res, Schema, populates, fieldSearch) => {
         $or: fieldSearch.map(item => ({ [item]: { $regex: new RegExp(`.*${search}.*`, "i") }}))
       });
     }
+    
+    // Mặc định sắp xếp theo created_at giảm dần
+    query.sort({ createdAt: -1 });
 
     // Thực hiện Sắp xếp
     if (sort) {
