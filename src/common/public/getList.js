@@ -9,21 +9,27 @@ const getList = async (req, res, Schema, populates, fieldSearch) => {
     if (filter) {
       const filterObj = JSON.parse(filter);
       for (const key in filterObj) {
-        query.where(key).equals(filterObj[key]);
-        countQuery.where(key).equals(filterObj[key]);
+        if (Array.isArray(filterObj[key])) {
+          // Sử dụng $in để lọc nhiều giá trị
+          query.where(key).in(filterObj[key]);
+          countQuery.where(key).in(filterObj[key]);
+        } else {
+          query.where(key).equals(filterObj[key]);
+          countQuery.where(key).equals(filterObj[key]);
+        }
       }
     }
 
     // Thực hiện Tìm kiếm toàn văn bản
     if (search) {
       query.where({
-        $or: fieldSearch.map(item => ({ [item]: { $regex: new RegExp(`.*${search}.*`, "i") }}))
+        $or: fieldSearch.map(item => ({ [item]: { $regex: new RegExp(`.*${search}.*`, "i") } }))
       });
       countQuery.where({
-        $or: fieldSearch.map(item => ({ [item]: { $regex: new RegExp(`.*${search}.*`, "i") }}))
+        $or: fieldSearch.map(item => ({ [item]: { $regex: new RegExp(`.*${search}.*`, "i") } }))
       });
     }
-    
+
     // Mặc định sắp xếp theo created_at giảm dần
     query.sort({ createdAt: -1 });
 

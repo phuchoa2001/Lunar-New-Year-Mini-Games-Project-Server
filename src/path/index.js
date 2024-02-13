@@ -74,9 +74,20 @@ const Path = [
 			})
 			app.patch(`${item.router}/updateStatus`, action.nextFun, async (req, res) => {
 				try {
-					const updatedGoals = await item.schema.updateMany({ status: 2 }, { $set: { status: 1 } });
+					const updatedGoals = await item.schema.updateMany({ status: 2 }, { $set: { status: 3 } });
 					res.json({
 						message: 'Goals updated successfully',
+						updatedGoals
+					});
+				} catch (error) {
+					res.status(500).json({ message: 'Error updating goals', error });
+				}
+			})
+			app.patch(`${item.router}/doneBuild`, action.nextFun, async (req, res) => {
+				try {
+					const updatedGoals = await item.schema.updateMany({ status: 3 }, { $set: { status: 1 } });
+					res.json({
+						message: 'Goals done Build',
 						updatedGoals
 					});
 				} catch (error) {
