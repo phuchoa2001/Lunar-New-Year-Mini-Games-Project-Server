@@ -3,7 +3,8 @@ const Goal = require('../schema/goal');
 
 const checkUserConfirmation = (req, res, next) => {
   const { confirmUser, idUser } = req.body;
-  const idGame = req.params.id;
+  const idGame = req.params.id || req.body.id;
+
   IdGame.findOne({
     confirmUser: confirmUser
   }, (err, game) => {

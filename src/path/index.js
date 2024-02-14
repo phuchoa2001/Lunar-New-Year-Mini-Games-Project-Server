@@ -4,6 +4,8 @@ const post = require("../common/public/post");
 const put = require("../common/public/put");
 const checkUpdateTime = require('../middleware/checkUpdateTime');
 const checkUserConfirmation = require('../middleware/checkUserConfirmation');
+const { addAction, deleteAllActions } = require('../service/actionService');
+const deleteItem = require("../common/public/delete");
 
 const Path = [
 	{
@@ -21,7 +23,7 @@ const Path = [
 		populates: [],
 		isAdmin: false,
 		isLogin: false,
-		fieldSearch: ["idGame" , "target"],
+		fieldSearch: ["idGame", "target"],
 		allowPublic: false,
 		routerMore: (app, action, item) => {
 			app.post(`${item.router}`, action.nextFun, async (req, res) => {
@@ -35,7 +37,19 @@ const Path = [
 				updateData.status = 2;
 				delete updateData.idUser;
 				delete updateData.idGame;
+				addAction({
+					id: req.params.id,
+					method: "put"
+				})
 				put(req, res, item.schema, item.populates)
+			})
+			app.delete(`${item.router}`, checkUserConfirmation, checkUpdateTime, action.nextFun, async (req, res) => {
+				addAction({
+					id: req.body.id,
+					method: "delete"
+				})
+				req.body.ids = [req.body.id];
+				deleteItem(req, res, item.schema, item.populates)
 			})
 			app.post(`${item.router}/:goalId/like`, action.nextFun, async (req, res) => {
 				const goalId = req.params.goalId;
@@ -86,6 +100,7 @@ const Path = [
 			app.patch(`${item.router}/doneBuild`, action.nextFun, async (req, res) => {
 				try {
 					const updatedGoals = await item.schema.updateMany({ status: 3 }, { $set: { status: 1 } });
+					const deleteAction = await deleteAllActions();
 					res.json({
 						message: 'Goals done Build',
 						updatedGoals
