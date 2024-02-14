@@ -9,6 +9,7 @@ const getId = require("../common/public/getId");
 const post = require("../common/public/post");
 const put = require("../common/public/put");
 const deleteItem = require("../common/public/delete");
+const { getAllActions } = require('../service/actionService');
 const increaseView = require("../common/public/increaseView");
 
 // login 
@@ -122,9 +123,11 @@ function route(app) {
 	app.post('/stats', async (req, res) => {
 		const result = await pageViewSchema.findOneAndUpdate({}, { $inc: { views: 1 } }, { new: true, upsert: true });
 		const count = await idGameSchema.countDocuments();
+		const actions = await getAllActions();
 		res.json({
 			result,
-			count
+			count,
+			actions: actions
 		});
 	});
 	app.post('/register', isAdmin, register)
