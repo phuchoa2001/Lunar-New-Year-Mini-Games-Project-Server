@@ -29,6 +29,10 @@ const Path = [
 			app.post(`${item.router}`, action.nextFun, async (req, res) => {
 				const postData = req.body;
 				delete postData.likes;
+				addAction({
+					id: "post",
+					method: "post"
+				})
 				post(req, res, item.schema, item.populates)
 			})
 			app.put(`${item.router}/:id`, checkUserConfirmation, checkUpdateTime, action.nextFun, async (req, res) => {

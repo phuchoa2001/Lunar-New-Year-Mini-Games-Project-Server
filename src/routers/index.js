@@ -130,6 +130,18 @@ function route(app) {
 			actions: actions
 		});
 	});
+	app.get('/checkActions', async (req, res) => {
+		try {
+			const actions = await getAllActions();
+			if (actions && actions.length > 0) {
+				res.send("true");
+			} else {
+				res.send("false");
+			}
+		} catch (error) {
+			res.status(500).json({ message: "An error occurred", error: error.message });
+		}
+	});
 	app.post('/register', isAdmin, register)
 	app.post('/login', login)
 	app.post('/protected', verifyToken, protected)
