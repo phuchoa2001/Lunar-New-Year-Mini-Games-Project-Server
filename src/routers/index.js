@@ -124,10 +124,11 @@ function route(app) {
 		const result = await pageViewSchema.findOneAndUpdate({}, { $inc: { views: 1 } }, { new: true, upsert: true });
 		const count = await idGameSchema.countDocuments();
 		const actions = await getAllActions();
+		const postActions = actions.filter(action => action.id !== 'post');
 		res.json({
 			result,
 			count,
-			actions: actions
+			actions: postActions
 		});
 	});
 	app.get('/checkActions', async (req, res) => {
